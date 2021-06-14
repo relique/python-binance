@@ -6524,7 +6524,6 @@ class AsyncClient(BaseClient):
         Raises the appropriate exceptions when necessary; otherwise, returns the
         response.
         """
-        status_code = response.status_code
         used_weight = int(response.headers.get('x-mbx-used-weight', 0))
 
         if used_weight > 1150:
@@ -6533,9 +6532,9 @@ class AsyncClient(BaseClient):
             )
             time.sleep(61)  # blocking
 
-        if status_code in (418, 429):
+        if response.status in (418, 429):
             sys.stdout.write(
-                f'[{status_code}] Binance is overloaded or IP is banned. Waiting for 30 min...\n'
+                f'[{response.status}] Binance is overloaded or IP is banned. Waiting for 30 min...\n'
             )
             time.sleep(60 * 30 + 1)  # blocking
 
