@@ -1,3 +1,4 @@
+import sys
 from typing import Dict, Optional, List, Tuple
 
 import aiohttp
@@ -312,6 +313,22 @@ class Client(BaseClient):
         kwargs = self._get_request_kwargs(method, signed, force_params, **kwargs)
 
         self.response = getattr(self.session, method)(uri, **kwargs)
+
+        status_code = self.response.status_code
+        used_weight = int(self.response.headers.get('x-mbx-used-weight', 0))
+
+        if used_weight > 1150:
+            sys.stdout.write(
+                f'Request weight might exceed limit: {used_weight} out of 1200. Waiting for 1 min...\n'
+            )
+            time.sleep(61)  # blocking
+
+        if status_code in (418, 429):
+            sys.stdout.write(
+                f'[{status_code}] Binance is overloaded or IP is banned. Waiting for 30 min...\n'
+            )
+            time.sleep(60 * 30 + 1)  # blocking
+
         return self._handle_response(self.response)
 
     @staticmethod
@@ -6507,6 +6524,21 @@ class AsyncClient(BaseClient):
         Raises the appropriate exceptions when necessary; otherwise, returns the
         response.
         """
+        status_code = response.status_code
+        used_weight = int(response.headers.get('x-mbx-used-weight', 0))
+
+        if used_weight > 1150:
+            sys.stdout.write(
+                f'Request weight might exceed limit: {used_weight} out of 1200. Waiting for 1 min...\n'
+            )
+            time.sleep(61)  # blocking
+
+        if status_code in (418, 429):
+            sys.stdout.write(
+                f'[{status_code}] Binance is overloaded or IP is banned. Waiting for 30 min...\n'
+            )
+            time.sleep(60 * 30 + 1)  # blocking
+
         if not str(response.status).startswith('2'):
             raise BinanceAPIException(response, response.status, await response.text())
         try:
