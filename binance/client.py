@@ -10,6 +10,7 @@ import time
 from operator import itemgetter
 from urllib.parse import urlencode
 
+import ujson
 
 from .helpers import interval_to_milliseconds, convert_ts_str
 from .exceptions import BinanceAPIException, BinanceRequestException, NotImplementedException
@@ -6502,7 +6503,8 @@ class AsyncClient(BaseClient):
 
         session = aiohttp.ClientSession(
             loop=self.loop,
-            headers=self._get_headers()
+            headers=self._get_headers(),
+            json_serialize=ujson.dumps
         )
         return session
 
